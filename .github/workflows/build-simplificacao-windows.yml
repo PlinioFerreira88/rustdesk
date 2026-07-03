@@ -47,6 +47,22 @@ jobs:
           name: bridge-artifact
           path: ./
 
+      - name: Configure custom server & app name (Simplificação)
+        shell: bash
+        run: |
+          CONFIG=libs/hbb_common/src/config.rs
+          SERVER=137.131.184.119
+          PUBKEY='ZU0225ZMbqCTlUGyiu4v1ScTOZIpMklBvIqfo3ltXJw='
+          APPNAME='Simplificacao'
+          sed -i "s|rs-ny\.rustdesk\.com|${SERVER}|g" "$CONFIG"
+          sed -i "s|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|${PUBKEY}|g" "$CONFIG"
+          sed -i "s|APP_NAME: RwLock<String> = RwLock::new(\"RustDesk\"|APP_NAME: RwLock<String> = RwLock::new(\"${APPNAME}\"|" "$CONFIG"
+          echo "--- Verificação da configuração customizada ---"
+          grep -q "\"${SERVER}\"" "$CONFIG" || { echo "ERRO: IP do servidor NAO foi aplicado em $CONFIG (o RustDesk pode ter mudado o valor padrao)"; exit 1; }
+          grep -q "${PUBKEY}" "$CONFIG" || { echo "ERRO: chave publica NAO foi aplicada em $CONFIG"; exit 1; }
+          grep -q "APP_NAME: RwLock<String> = RwLock::new(\"${APPNAME}\"" "$CONFIG" || { echo "ERRO: APP_NAME NAO foi aplicado em $CONFIG"; exit 1; }
+          echo "OK: servidor ${SERVER}, chave publica e APP_NAME=${APPNAME} configurados com sucesso."
+
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@ebc0426251bc40c7cd31162802432c68818ab8f0
         with:
