@@ -1,4 +1,4 @@
-name: Build Simplificação Suporte - Windows x64
+name: Build SIMP View - Windows x64
 
 on:
   workflow_dispatch:
@@ -47,13 +47,13 @@ jobs:
           name: bridge-artifact
           path: ./
 
-      - name: Configure custom server & app name (Simplificação)
+      - name: Configure custom server & app name (SIMP View)
         shell: bash
         run: |
           CONFIG=libs/hbb_common/src/config.rs
           SERVER=137.131.184.119
           PUBKEY='ZU0225ZMbqCTlUGyiu4v1ScTOZIpMklBvIqfo3ltXJw='
-          APPNAME='Simplificacao'
+          APPNAME='SimpView'
           sed -i "s|rs-ny\.rustdesk\.com|${SERVER}|g" "$CONFIG"
           sed -i "s|OeVuKk5nlHiXp+APNn0Y3pC1Iwpwn44JGqrQCsWqmBw=|${PUBKEY}|g" "$CONFIG"
           sed -i "s|APP_NAME: RwLock<String> = RwLock::new(\"RustDesk\"|APP_NAME: RwLock<String> = RwLock::new(\"${APPNAME}\"|" "$CONFIG"
@@ -122,16 +122,16 @@ jobs:
           fi
         shell: bash
 
-      - name: Build Simplificação Suporte
+      - name: Build SIMP View
         run: |
           python3 .\build.py --portable --flutter --skip-portable-pack --hwcodec --vram
-          mv ./flutter/build/windows/x64/runner/Release ./simplificacao
+          mv ./flutter/build/windows/x64/runner/Release ./simpview
 
           Invoke-WebRequest -Uri https://github.com/rustdesk-org/rdev/releases/download/usbmmidd_v2/usbmmidd_v2.zip -OutFile usbmmidd_v2.zip
           Expand-Archive usbmmidd_v2.zip -DestinationPath .
           Remove-Item -Path usbmmidd_v2\Win32 -Recurse
           Remove-Item -Path "usbmmidd_v2\deviceinstaller64.exe", "usbmmidd_v2\deviceinstaller.exe", "usbmmidd_v2\usbmmidd.bat"
-          mv -Force .\usbmmidd_v2 ./simplificacao
+          mv -Force .\usbmmidd_v2 ./simpview
 
       - name: Find Runner.res
         continue-on-error: true
@@ -146,13 +146,13 @@ jobs:
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c
         with:
           name: topmostwindow-artifacts-x64
-          path: "./simplificacao"
+          path: "./simpview"
 
       - name: Upload build artifact
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: simplificacao-suporte-windows-x64
-          path: simplificacao
+          name: simpview-windows-x64
+          path: simpview
 
       - name: Build installer (.exe)
         shell: bash
@@ -160,13 +160,13 @@ jobs:
           sed -i '/dpiAware/d' res/manifest.xml
           pushd ./libs/portable
           pip3 install -r requirements.txt
-          python3 ./generate.py -f ../../simplificacao/ -o . -e ../../simplificacao/simplificacao.exe
+          python3 ./generate.py -f ../../simpview/ -o . -e ../../simpview/simpview.exe
           popd
           mkdir -p ./Output
-          mv ./target/release/rustdesk-portable-packer.exe ./Output/Simplificacao-Suporte-${{ env.VERSION }}-x64.exe
+          mv ./target/release/rustdesk-portable-packer.exe ./Output/SimpView-${{ env.VERSION }}-x64.exe
 
       - name: Upload installer
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
         with:
-          name: simplificacao-suporte-installer-x64
-          path: Output/Simplificacao-Suporte-*.exe
+          name: simpview-installer-x64
+          path: Output/SimpView-*.exe

@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "Simplificação" "\0"
-            VALUE "FileDescription", "Simplificação Suporte Remoto" "\0"
+            VALUE "FileDescription", "SIMP View - Acesso Remoto" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "simplificacao" "\0"
+            VALUE "InternalName", "simpview" "\0"
             VALUE "LegalCopyright", "Copyright © 2026 Simplificação. Todos os direitos reservados." "\0"
-            VALUE "OriginalFilename", "simplificacao.exe" "\0"
-            VALUE "ProductName", "Simplificação Suporte" "\0"
+            VALUE "OriginalFilename", "simpview.exe" "\0"
+            VALUE "ProductName", "SIMP View" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
