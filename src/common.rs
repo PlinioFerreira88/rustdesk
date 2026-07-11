@@ -2030,9 +2030,22 @@ pub fn create_symmetric_key_msg(their_pk_b: [u8; 32]) -> (Bytes, Bytes, secretbo
     (Vec::from(our_pk_b.0).into(), sealed_key.into(), key)
 }
 
+// SIMP View: o original respondia "servidor publico" sempre que a OPCAO
+// custom-rendezvous-server estava vazia. No nosso build o servidor vem compilado
+// em RENDEZVOUS_SERVERS (o CI troca por sed), a opcao fica vazia e a funcao dava
+// falso positivo. Alem do link "configure seu proprio servidor" na tela inicial,
+// isso limitava a qualidade custom (client.rs), escondia FPS/mais qualidade
+// (dialog.dart) e deixava a checagem de peers online em 20s em vez de 6s.
 #[inline]
 pub fn using_public_server() -> bool {
-    crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server")).is_empty()
+    let mut server = crate::get_custom_rendezvous_server(get_option("custom-rendezvous-server"));
+    if server.is_empty() {
+        server = config::RENDEZVOUS_SERVERS
+            .first()
+            .map(|x| (*x).to_owned())
+            .unwrap_or_default();
+    }
+    server.is_empty() || server.ends_with("rustdesk.com")
 }
 
 pub struct ThrottledInterval {
