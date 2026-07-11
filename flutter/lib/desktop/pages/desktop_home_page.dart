@@ -26,6 +26,12 @@ import 'package:window_manager/window_manager.dart';
 import 'package:window_size/window_size.dart' as window_size;
 import '../widgets/button.dart';
 
+// SIMP View: canais de suporte oferecidos na tela inicial.
+const String kSuporteUrlChamado =
+    'https://suporte.simplificacao.com/otrs/customer.pl';
+const String kSuporteUrlWhatsapp = 'https://wa.me/551640420014';
+const String kSuporteWhatsappLabel = '(16) 4042-0014';
+
 class DesktopHomePage extends StatefulWidget {
   const DesktopHomePage({Key? key}) : super(key: key);
 
@@ -93,6 +99,7 @@ class _DesktopHomePageState extends State<DesktopHomePage>
       buildTip(context),
       if (!isOutgoingOnly) buildIDBoard(context),
       if (!isOutgoingOnly) buildPasswordBoard(context),
+      if (!isOutgoingOnly) buildSuporteBoard(context),
       FutureBuilder<Widget>(
         future: Future.value(
             Obx(() => buildHelpCards(stateGlobal.updateUrl.value))),
@@ -425,6 +432,105 @@ class _DesktopHomePageState extends State<DesktopHomePage>
               style: Theme.of(context).textTheme.bodySmall,
             ),
         ],
+      ),
+    );
+  }
+
+  Widget buildSuporteBoard(BuildContext context) {
+    return Container(
+      margin: EdgeInsets.only(left: 20.0, right: 16, top: 6, bottom: 10),
+      child: SizedBox(
+        width: double.infinity,
+        child: ElevatedButton.icon(
+          icon: Icon(Icons.support_agent, size: 20),
+          label: Text('Acionar o Suporte'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: MyTheme.accent,
+            foregroundColor: Colors.white,
+            padding: EdgeInsets.symmetric(vertical: 12),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(6),
+            ),
+          ),
+          onPressed: () => showSuporteDialog(),
+        ),
+      ),
+    );
+  }
+
+  void showSuporteDialog() {
+    gFFI.dialogManager.show((setState, close, context) {
+      return CustomAlertDialog(
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.support_agent, color: MyTheme.accent),
+            Text('Acionar o Suporte').paddingOnly(left: 10),
+          ],
+        ),
+        content: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 380),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Escolha como você quer falar com a equipe de suporte.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ).marginOnly(bottom: 12),
+              buildSuporteOpcao(
+                context,
+                icon: Icons.confirmation_number_outlined,
+                titulo: 'Abrir chamado',
+                subtitulo: 'Registrar um chamado no portal de suporte',
+                url: kSuporteUrlChamado,
+                close: close,
+              ),
+              buildSuporteOpcao(
+                context,
+                icon: Icons.chat_outlined,
+                titulo: 'WhatsApp do suporte',
+                subtitulo: kSuporteWhatsappLabel,
+                url: kSuporteUrlWhatsapp,
+                close: close,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          dialogButton('Cancel', onPressed: close, isOutline: true),
+        ],
+      );
+    });
+  }
+
+  Widget buildSuporteOpcao(
+    BuildContext context, {
+    required IconData icon,
+    required String titulo,
+    required String subtitulo,
+    required String url,
+    required VoidCallback close,
+  }) {
+    return Card(
+      elevation: 0,
+      margin: EdgeInsets.only(bottom: 8),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(6),
+        side: BorderSide(color: Theme.of(context).dividerColor),
+      ),
+      child: ListTile(
+        leading: Icon(icon, color: MyTheme.accent),
+        title: Text(titulo, style: TextStyle(fontWeight: FontWeight.w500)),
+        subtitle: Text(subtitulo, style: TextStyle(fontSize: 12)),
+        trailing: Icon(Icons.open_in_new, size: 16),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(6),
+        ),
+        onTap: () {
+          close();
+          launchUrl(Uri.parse(url));
+        },
       ),
     );
   }

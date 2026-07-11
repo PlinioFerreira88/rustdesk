@@ -2081,7 +2081,18 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
     ThrottledInterval::new(i)
 }
 
+// SIMP View: ajustes fixos do produto. HARD_SETTINGS só é preenchido por
+// read_custom_client (blob assinado pelo RustDesk Server Pro), que não temos;
+// como compilamos do fonte, semeamos aqui. Roda em todos os pontos de entrada
+// (core_main, flutter_ffi, service) porque todos chamam load_custom_client.
+fn load_simpview_hard_settings() {
+    let mut hard = config::HARD_SETTINGS.write().unwrap();
+    // Não usamos login de conta RustDesk: some com a aba "Conta" das Configurações.
+    hard.insert("disable-account".to_owned(), "Y".to_owned());
+}
+
 pub fn load_custom_client() {
+    load_simpview_hard_settings();
     #[cfg(debug_assertions)]
     if let Ok(data) = std::fs::read_to_string("./custom.txt") {
         read_custom_client(data.trim());
