@@ -568,8 +568,10 @@ class _DesktopHomePageState extends State<DesktopHomePage>
 
     if (isWindows && !bind.isDisableInstallation()) {
       if (!bind.mainIsInstalled()) {
+        // SIMP View: sem o card vermelho de UAC. Passamos conteudo vazio ->
+        // buildInstallCard mostra so o botao verde "Instalar".
         return buildInstallCard(
-            "", bind.isOutgoingOnly() ? "" : "install_tip", "Install",
+            "", "", "Install",
             () async {
           await rustDeskWinManager.closeAllSubWindows();
           bind.mainGotoInstall();
@@ -703,6 +705,26 @@ class _DesktopHomePageState extends State<DesktopHomePage>
           isCardClosed = true;
         });
       }
+    }
+
+    // SIMP View: caso "so botao" (sem titulo nem texto) -> um botao verde
+    // discreto, SEM o card com gradiente rosa/vermelho de UAC. Usado no aviso
+    // de "instalar" do Windows quando o console roda em modo portatil.
+    if (title.isEmpty && content.isEmpty && btnText.isNotEmpty) {
+      return Container(
+        margin: EdgeInsets.only(top: marginTop),
+        alignment: Alignment.center,
+        child: FixedWidthButton(
+          width: 160,
+          padding: 10,
+          isOutline: false,
+          text: btnText,
+          textColor: Colors.white,
+          textSize: 18,
+          radius: 10,
+          onTap: onPressed,
+        ),
+      );
     }
 
     return Stack(
