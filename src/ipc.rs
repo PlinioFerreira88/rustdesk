@@ -897,6 +897,14 @@ async fn handle(data: Data, stream: &mut Connection) {
                     // reading back any secret.
                     let ack = if updated { "Y" } else { "N" }.to_owned();
                     allow_err!(stream.send(&Data::Config((name.clone(), Some(ack)))).await);
+                } else if name == "permanent-password-force" {
+                    // SIMP View: escrita privilegiada da plataforma (via
+                    // --simpview-set-password). Ignora disable-change-permanent-password
+                    // DE PROPOSITO -- e por onde a senha por-maquina e provisionada e
+                    // rotacionada pelo agente/painel. So a plataforma manda este nome.
+                    updated = Config::set_permanent_password(&value);
+                    let ack = if updated { "Y" } else { "N" }.to_owned();
+                    allow_err!(stream.send(&Data::Config((name.clone(), Some(ack)))).await);
                 } else if name == "salt" {
                     Config::set_salt(&value);
                 } else if name == "voice-call-input" {
@@ -1599,18 +1607,35 @@ pub fn set_permanent_password(v: String) -> ResultType<()> {
     }
 }
 
-#[tokio::main(flavor = "current_thread")]
-pub async fn set_permanent_password_with_ack(v: String) -> ResultType<bool> {
-    set_permanent_password_with_ack_async(v).await
+// SIMP View: escrita privilegiada da plataforma. Ignora a trava
+// disable-change-permanent-password nas DUAS pontas -- nao checa aqui e usa o
+// nome de IPC dedicado "permanent-password-force", que o daemon aceita sem
+// checar a trava (ver o handler em ipc.rs). So --simpview-set-password chama isto.
+pub fn set_permanent_password_forced(v: String) -> ResultType<()> {
+    if set_permanent_password_with_ack_named("permanent-password-force", v)? {
+        Ok(())
+    } else {
+        bail!("Changing permanent password was rejected by daemon");
+    }
 }
 
-async fn set_permanent_password_with_ack_async(v: String) -> ResultType<bool> {
+#[tokio::main(flavor = "current_thread")]
+pub async fn set_permanent_password_with_ack(v: String) -> ResultType<bool> {
+    set_permanent_password_with_ack_named_async("permanent-password", v).await
+}
+
+#[tokio::main(flavor = "current_thread")]
+pub async fn set_permanent_password_with_ack_named(name: &'static str, v: String) -> ResultType<bool> {
+    set_permanent_password_with_ack_named_async(name, v).await
+}
+
+async fn set_permanent_password_with_ack_named_async(name: &'static str, v: String) -> ResultType<bool> {
     // The daemon ACK/NACK is expected quickly since it applies the config in-process.
     let ms_timeout = 1_000;
     let mut c = connect(ms_timeout, "").await?;
-    c.send_config("permanent-password", v).await?;
+    c.send_config(name, v).await?;
     if let Some(Data::Config((name2, Some(v)))) = c.next_timeout(ms_timeout).await? {
-        if name2 == "permanent-password" {
+        if name2 == name {
             let v = v.trim();
             let ok = v == "Y";
             if ok {

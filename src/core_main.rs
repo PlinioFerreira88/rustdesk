@@ -459,7 +459,9 @@ pub fn core_main() -> Option<Vec<String>> {
             // como o --password.
             if args.len() == 2 {
                 if crate::platform::is_installed() && is_root() {
-                    if let Err(err) = crate::ipc::set_permanent_password(args[1].to_owned()) {
+                    // set_permanent_password_forced ignora a trava nas duas pontas;
+                    // set_permanent_password (usado pelo --password) a respeita.
+                    if let Err(err) = crate::ipc::set_permanent_password_forced(args[1].to_owned()) {
                         println!("{err}");
                     } else {
                         println!("Done!");
