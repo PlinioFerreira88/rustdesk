@@ -2099,9 +2099,24 @@ pub fn rustdesk_interval(i: Interval) -> ThrottledInterval {
 // como compilamos do fonte, semeamos aqui. Roda em todos os pontos de entrada
 // (core_main, flutter_ffi, service) porque todos chamam load_custom_client.
 fn load_simpview_hard_settings() {
-    let mut hard = config::HARD_SETTINGS.write().unwrap();
-    // Não usamos login de conta RustDesk: some com a aba "Conta" das Configurações.
-    hard.insert("disable-account".to_owned(), "Y".to_owned());
+    {
+        let mut hard = config::HARD_SETTINGS.write().unwrap();
+        // Não usamos login de conta RustDesk: some com a aba "Conta" das Configurações.
+        hard.insert("disable-account".to_owned(), "Y".to_owned());
+    }
+    {
+        // Trava a troca da senha permanente pela interface e pelo `--password`.
+        // A senha é gerenciada pela plataforma SIMP View (instalador/agente/painel),
+        // não pelo usuário da máquina do cliente -- se ele a trocasse, quebraria o
+        // acesso não assistido de 1-clique. is_disable_change_permanent_password()
+        // lê daqui (BUILTIN_SETTINGS). O nosso comando privado
+        // `--simpview-set-password` seta a senha ignorando esta trava.
+        let mut builtin = config::BUILTIN_SETTINGS.write().unwrap();
+        builtin.insert(
+            config::keys::OPTION_DISABLE_CHANGE_PERMANENT_PASSWORD.to_owned(),
+            "Y".to_owned(),
+        );
+    }
 }
 
 pub fn load_custom_client() {
