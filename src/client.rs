@@ -2689,6 +2689,14 @@ impl LoginConfigHandler {
                     })
                     .unwrap_or_default();
         }
+        // SIMP View: nome do TÉCNICO vindo do deep-link do painel (o dashboard
+        // sabe quem está logado e o passa em ?nome=; o handler do link grava em
+        // "simpview-display-name"). Assim a janela no cliente mostra "Fulano" em
+        // vez do usuário do Windows da máquina do técnico. Fica antes do fallback
+        // do username; se o link não trouxe nome (conexão manual), cai no username.
+        if display_name.is_empty() {
+            display_name = LocalConfig::get_option("simpview-display-name");
+        }
         if display_name.is_empty() {
             display_name = crate::username();
         }

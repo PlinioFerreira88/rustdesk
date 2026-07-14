@@ -2440,6 +2440,15 @@ List<String>? urlLinkToCmdArgs(Uri uri) {
   var queryParameters =
       uri.queryParameters.map((k, v) => MapEntry(k.toLowerCase(), v));
 
+  // SIMP View: nome do técnico vindo do painel (?nome=Fulano). Grava como opção
+  // local para o cliente mostrar o nome do técnico na janela de conexão, no lugar
+  // do usuário do Windows. Vale para esta conexão e as próximas desta máquina.
+  final simpNome = queryParameters["nome"];
+  if (simpNome != null && simpNome.trim().isNotEmpty) {
+    bind.mainSetLocalOption(
+        key: "simpview-display-name", value: simpNome.trim());
+  }
+
   var key = queryParameters["key"];
   if (id != null) {
     if (key != null) {

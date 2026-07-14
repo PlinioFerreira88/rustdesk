@@ -2117,6 +2117,16 @@ fn load_simpview_hard_settings() {
             "Y".to_owned(),
         );
     }
+    {
+        // Áudio DESLIGADO por padrão, nos DOIS sentidos: a permissão de áudio do
+        // lado controlado nasce negada (enable-audio=N). Assim o técnico não ouve
+        // o áudio do cliente, e a chamada de voz -- que levaria o microfone do
+        // técnico para o cliente -- fica bloqueada. É DEFAULT (não OVERWRITE): o
+        // técnico ainda pode ligar o áudio numa conexão específica quando precisar
+        // (ex.: diagnosticar som), reativando a permissão pelo botão da janela.
+        let mut def = config::DEFAULT_SETTINGS.write().unwrap();
+        def.insert(config::keys::OPTION_ENABLE_AUDIO.to_owned(), "N".to_owned());
+    }
 }
 
 pub fn load_custom_client() {
