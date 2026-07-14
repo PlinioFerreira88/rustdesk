@@ -902,7 +902,9 @@ async fn handle(data: Data, stream: &mut Connection) {
                     // --simpview-set-password). Ignora disable-change-permanent-password
                     // DE PROPOSITO -- e por onde a senha por-maquina e provisionada e
                     // rotacionada pelo agente/painel. So a plataforma manda este nome.
-                    updated = Config::set_permanent_password(&value);
+                    // set_permanent_password_forced NAO re-checa a trava (ao contrario
+                    // de set_permanent_password, que a checa e devolveria false aqui).
+                    updated = Config::set_permanent_password_forced(&value);
                     let ack = if updated { "Y" } else { "N" }.to_owned();
                     allow_err!(stream.send(&Data::Config((name.clone(), Some(ack)))).await);
                 } else if name == "salt" {

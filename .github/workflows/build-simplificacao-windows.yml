@@ -62,6 +62,17 @@ jobs:
           grep -q "${PUBKEY}" "$CONFIG" || { echo "ERRO: chave publica NAO foi aplicada em $CONFIG"; exit 1; }
           grep -q "APP_NAME: RwLock<String> = RwLock::new(\"${APPNAME}\"" "$CONFIG" || { echo "ERRO: APP_NAME NAO foi aplicado em $CONFIG"; exit 1; }
           echo "OK: servidor ${SERVER}, chave publica e APP_NAME=${APPNAME} configurados com sucesso."
+          # Patch da senha permanente FORCADA (SIMP View): o submodulo hbb_common
+          # aponta para o upstream oficial, entao esta mudanca em config.rs entra
+          # como patch no build (mesmo motivo dos sed acima). Sem ela, o comando
+          # privado da plataforma (--simpview-set-password) esbarra na trava
+          # disable-change-permanent-password e o 1-clique nao-assistido nao grava
+          # a senha por-maquina ("rejected by daemon").
+          echo "--- Aplicando patch da senha permanente forcada ---"
+          git -C libs/hbb_common apply --verbose --ignore-whitespace "${GITHUB_WORKSPACE}/simpview-patches/0001-hbb_common-forced-permanent-password.patch" \
+            || { echo "ERRO: patch da senha forcada NAO aplicou (o upstream do hbb_common pode ter mudado config.rs)"; exit 1; }
+          grep -q "fn set_permanent_password_forced" "$CONFIG" || { echo "ERRO: set_permanent_password_forced ausente apos o patch"; exit 1; }
+          echo "OK: patch da senha permanente forcada aplicado."
 
       - name: Install LLVM and Clang
         uses: KyleMayes/install-llvm-action@ebc0426251bc40c7cd31162802432c68818ab8f0
