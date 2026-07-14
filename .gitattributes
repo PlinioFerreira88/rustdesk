@@ -1,1 +1,5 @@
 * text=auto
+
+# Patches aplicados no build (git apply) precisam de LF estavel,
+# senao o runner Windows os converte p/ CRLF e o apply fica fragil.
+simpview-patches/*.patch text eol=lf
